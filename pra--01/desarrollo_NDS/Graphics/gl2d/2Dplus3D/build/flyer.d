@@ -1,0 +1,1 @@
+flyer.o: flyer.s

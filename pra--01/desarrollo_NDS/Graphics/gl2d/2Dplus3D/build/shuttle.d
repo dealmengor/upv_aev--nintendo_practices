@@ -1,0 +1,1 @@
+shuttle.o: shuttle.s
