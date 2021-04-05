@@ -1,0 +1,8 @@
+# Build extension files & folders
+*.3dsx
+*.elf
+*.smdh
+*.o
+*.lst
+*.map
+build/

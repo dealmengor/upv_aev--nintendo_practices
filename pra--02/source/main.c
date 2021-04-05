@@ -3,8 +3,10 @@
 	This code was modified for the last time on: 12/12/2014 21:00 UTC+1
 */
 
-#include <3ds.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <3ds.h>
 
 int main(int argc, char **argv)
 {
@@ -31,7 +33,8 @@ int main(int argc, char **argv)
 		//hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
 		u32 kDown = hidKeysDown();
 
-		if (kDown & KEY_START) break; // break in order to return to hbmenu
+		if (kDown & KEY_START)
+			break; // break in order to return to hbmenu
 
 		// Flush and swap framebuffers
 		gfxFlushBuffers();
