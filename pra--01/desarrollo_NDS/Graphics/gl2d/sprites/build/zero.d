@@ -1,1 +1,0 @@
-zero.o: zero.s

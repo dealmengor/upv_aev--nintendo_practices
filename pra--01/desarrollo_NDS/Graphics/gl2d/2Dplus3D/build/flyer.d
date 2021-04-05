@@ -1,1 +1,0 @@
-flyer.o: flyer.s

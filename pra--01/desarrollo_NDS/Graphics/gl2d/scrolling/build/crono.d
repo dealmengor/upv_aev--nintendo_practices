@@ -1,1 +1,0 @@
-crono.o: crono.s
