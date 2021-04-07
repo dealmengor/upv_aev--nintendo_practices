@@ -43,15 +43,15 @@ int main(int argc, char **argv)
 		printf("\x1b[8;9HPress Start to exit");
 
 		//Timer
-		time(&current_epoch_time); // Get current EPOCH time from System
-		//diff_t = difftime(next_stop, current_epoch_time); // Time Difference
-		if (diff_t >= 0 && diff_t <= 3) // less than 3 seconds and more than 3 the timer
+		time(&current_epoch_time);						  // Get current EPOCH time from System
+		diff_t = difftime(next_stop, current_epoch_time); // Time Difference
+		if (diff_t >= 0 && diff_t <= 3)					  // less than 3 seconds and more than 3 the timer
 			timer = diff_t;
 		printf("\x1b[9;9HTimer: %d", (int)timer);
 		if (diff_t < 0) // if the difft is not lees than 3 secs and more than 3
 			counter = 0;
 		printf("\x1b[10;9HClicks: %d", (int)counter);
-		printf("\x1b[2;9HDiff = %f", (double)diff_t);
+		//printf("\x1b[2;9HDiff = %f", (double)diff_t);
 
 		// Keys validatation
 		if (kDown & KEY_START)
