@@ -109,13 +109,11 @@ static void sceneExit(void)
 static void initSprites()
 {
 	//---------------------------------------------------------------------------------
-	//size_t numImages = C2D_SpriteSheetCount(spriteSheet);
 	srand(time(NULL)); // Sets a seed for random numbers
 
 	for (size_t i = 0; i < MAX_SPRITES; i++)
 	{
 		Sprite *sprite = &sprites[i];
-
 		// Random image, position, rotation and speed
 		C2D_SpriteFromSheet(&sprite->spr, spriteSheet, i);
 		C2D_SpriteSetCenter(&sprite->spr, 0.5f, 0.5f);
@@ -124,7 +122,10 @@ static void initSprites()
 		sprite->dx = rand() * 4.0f / RAND_MAX - 2.0f;
 		sprite->dy = rand() * 4.0f / RAND_MAX - 2.0f;
 		if (i == 2)
+		{
+			C2D_SpriteSetPos(&sprite->spr, 0, 0);
 			C2D_SpriteSetRotationDegrees(&sprite->spr, 180);
+		}
 	}
 }
 
@@ -200,12 +201,13 @@ int main(int argc, char *argv[])
 	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
 	C2D_Prepare();
 
-	//Console Display
-	// consoleInit(GFX_TOP, NULL);
-
 	// Create screens
 	C3D_RenderTarget *top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 	C3D_RenderTarget *bottom = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
+
+	// Initialize the scene
+	sceneInit();
+	float size = 0.5f;
 
 	// Load graphics
 	spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
@@ -215,36 +217,24 @@ int main(int argc, char *argv[])
 	// Initialize sprites
 	initSprites();
 
-	// Initialize the scene
-	sceneInit();
-
-	float size = 0.5f;
-
 	// Main loop
 	while (aptMainLoop())
 	{
 		hidScanInput();
 
 		// Respond to user input
-		// Respond to user input
 		u32 kDown = hidKeysDown();
 		u32 kHeld = hidKeysHeld();
 
-		if (kDown & KEY_START)
-			break; // break in order to return to hbmenu
-
 		moveSprites(); // Move sprites
 
-		//Move Sprite for Player
-		if (kHeld & KEY_UP)
-			movePlayerSprite(0);
-		else if (kHeld & KEY_DOWN)
-			movePlayerSprite(1);
-		// if (kHeld & KEY_LEFT)
-		// 	movePlayerSprite(2);
-		// if (kHeld & KEY_RIGHT)
-		// 	movePlayerSprite(3);
+		// Interface Control Logic
 
+		// break in order to return to hbmenu
+		if (kDown & KEY_START)
+			break;
+
+		// Top Display Resize Text Control
 		if (kHeld & KEY_L)
 			size -= 1.0f / 128;
 		else if (kHeld & KEY_R)
@@ -259,7 +249,15 @@ int main(int argc, char *argv[])
 		else if (size > 2.0f)
 			size = 2.0f;
 
-		moveSprites();
+		//Move Sprite for Player
+		if (kHeld & KEY_UP)
+			movePlayerSprite(0);
+		else if (kHeld & KEY_DOWN)
+			movePlayerSprite(1);
+		// if (kHeld & KEY_LEFT)
+		// 	movePlayerSprite(2);
+		// if (kHeld & KEY_RIGHT)
+		// 	movePlayerSprite(3);
 
 		// Render the scene
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
