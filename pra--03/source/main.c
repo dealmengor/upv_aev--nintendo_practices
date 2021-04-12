@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define MAX_SPRITES 2
+#define MAX_SPRITES 3
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 
@@ -42,6 +42,8 @@ static void initSprites()
 		C2D_SpriteSetRotation(&sprite->spr, C3D_Angle(rand() / (float)RAND_MAX));
 		sprite->dx = rand() * 4.0f / RAND_MAX - 2.0f;
 		sprite->dy = rand() * 4.0f / RAND_MAX - 2.0f;
+		if (i == 2)
+			C2D_SpriteSetRotationDegrees(&sprite->spr, 180);
 	}
 }
 
@@ -49,7 +51,7 @@ static void initSprites()
 static void moveSprites()
 {
 	//---------------------------------------------------------------------------------
-	for (size_t i = 0; i < numSprites; i++)
+	for (size_t i = 0; i < numSprites - 1; i++)
 	{
 		Sprite *sprite = &sprites[i];
 		C2D_SpriteMove(&sprite->spr, sprite->dx, sprite->dy);
@@ -64,6 +66,46 @@ static void moveSprites()
 			(sprite->spr.params.pos.y > (SCREEN_HEIGHT - (sprite->spr.params.pos.h / 2.0f)) && sprite->dy > 0.0f))
 			sprite->dy = -sprite->dy;
 	}
+}
+
+//---------------------------------------------------------------------------------
+void movePlayerSprite(int dir_code)
+{
+	Sprite *sprite = &sprites[2];
+	C2D_SpriteMove(&sprite->spr, sprite->dx, sprite->dy);
+	switch (dir_code)
+	{
+	case 0: //UP
+		consoleClear();
+		printf("\x1b[9;1HUP");
+		if ((sprite->spr.params.pos.x < sprite->spr.params.pos.w / 2.0f && sprite->dx < 0.0f) ||
+			(sprite->spr.params.pos.x > (SCREEN_WIDTH - (sprite->spr.params.pos.w / 2.0f)) && sprite->dx > 0.0f))
+			sprite->dx = -sprite->dx;
+		break;
+	case 1: //DOWN
+		consoleClear();
+		printf("\x1b[10;1HDOWN");
+		if ((sprite->spr.params.pos.y < sprite->spr.params.pos.h / 2.0f && sprite->dy < 0.0f) ||
+			(sprite->spr.params.pos.y > (SCREEN_HEIGHT - (sprite->spr.params.pos.h / 2.0f)) && sprite->dy > 0.0f))
+			sprite->dy = -sprite->dy;
+		break;
+		// case 2: //LEFT
+		// 	consoleClear();
+		// 	printf("\x1b[11;1HLEFT");
+		// 	break;
+		// case 3: //RIGHT
+		// 	consoleClear();
+		// 	printf("\x1b[8;1HRIGHT");
+		// 	break;
+	}
+	// // Check for collision with the screen boundaries
+	// if ((sprite->spr.params.pos.x < sprite->spr.params.pos.w / 2.0f && sprite->dx < 0.0f) ||
+	// 	(sprite->spr.params.pos.x > (SCREEN_WIDTH - (sprite->spr.params.pos.w / 2.0f)) && sprite->dx > 0.0f))
+	// 	sprite->dx = -sprite->dx;
+
+	// if ((sprite->spr.params.pos.y < sprite->spr.params.pos.h / 2.0f && sprite->dy < 0.0f) ||
+	// 	(sprite->spr.params.pos.y > (SCREEN_HEIGHT - (sprite->spr.params.pos.h / 2.0f)) && sprite->dy > 0.0f))
+	// 	sprite->dy = -sprite->dy;
 }
 
 //---------------------------------------------------------------------------------
@@ -101,10 +143,22 @@ int main(int argc, char *argv[])
 
 		// Respond to user input
 		u32 kDown = hidKeysDown();
+		u32 kHeld = hidKeysHeld();
+
 		if (kDown & KEY_START)
 			break; // break in order to return to hbmenu
 
-		moveSprites();
+		moveSprites(); // Move sprites
+
+		//Move Sprite for Player
+		if (kHeld & KEY_UP)
+			movePlayerSprite(0);
+		else if (kHeld & KEY_DOWN)
+			movePlayerSprite(1);
+		// if (kHeld & KEY_LEFT)
+		// 	movePlayerSprite(2);
+		// if (kHeld & KEY_RIGHT)
+		// 	movePlayerSprite(3);
 
 		printf("\x1b[1;1HSprites: %zu/%u\x1b[K", numSprites, MAX_SPRITES);
 		printf("\x1b[2;1HCPU:     %6.2f%%\x1b[K", C3D_GetProcessingTime() * 6.0f);
