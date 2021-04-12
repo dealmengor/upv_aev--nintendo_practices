@@ -25,7 +25,7 @@ static Sprite sprites[MAX_SPRITES];
 static size_t numSprites = MAX_SPRITES;
 
 C2D_TextBuf g_staticBuf, g_dynamicBuf;
-C2D_Text g_staticText[4];
+C2D_Text g_staticText[5];
 
 static void sceneInit(void)
 {
@@ -40,6 +40,7 @@ static void sceneInit(void)
 	C2D_TextParse(&g_staticText[2], g_staticBuf, "Move left: ←");
 	C2D_TextParse(&g_staticText[3], g_staticBuf, "Move right: →");
 	C2D_TextParse(&g_staticText[4], g_staticBuf, "Move down: ↓");
+	C2D_TextParse(&g_staticText[5], g_staticBuf, "Use  to change size");
 
 	// Optimize the static text strings
 	C2D_TextOptimize(&g_staticText[0]);
@@ -47,6 +48,7 @@ static void sceneInit(void)
 	C2D_TextOptimize(&g_staticText[2]);
 	C2D_TextOptimize(&g_staticText[3]);
 	C2D_TextOptimize(&g_staticText[4]);
+	C2D_TextOptimize(&g_staticText[5]);
 }
 
 static void sceneRender(float size)
@@ -55,20 +57,15 @@ static void sceneRender(float size)
 	C2D_TextBufClear(g_dynamicBuf);
 
 	// Draw static text strings
-	C2D_DrawText(&g_staticText[0], C2D_WithColor | C2D_AlignCenter, 60.0f, 25.0f, 0.5f, size, size, C2D_Color32f(0.0f, 0.0f, 1.0f, 0.350f));
-	C2D_DrawText(&g_staticText[1], C2D_WithColor | C2D_AlignJustified, 10.0f, 40.0f, 0.5f, size, size, C2D_Color32f(0.0f, 0.0f, 1.0f, 0.625f));
-	C2D_DrawText(&g_staticText[2], C2D_WithColor | C2D_AlignJustified, 10.0f, 55.0f, 0.5f, size, size, C2D_Color32f(0.0f, 0.0f, 1.0f, 0.625f));
-	C2D_DrawText(&g_staticText[3], C2D_WithColor | C2D_AlignJustified, 10.0f, 70.0f, 0.5f, size, size, C2D_Color32f(0.0f, 0.0f, 1.0f, 0.625f));
-	C2D_DrawText(&g_staticText[4], C2D_WithColor | C2D_AlignJustified, 10.0f, 85.0f, 0.5f, size, size, C2D_Color32f(0.0f, 0.0f, 1.0f, 0.625f));
+	C2D_DrawText(&g_staticText[0], C2D_WithColor | C2D_AlignCenter, 100.0f, 30.0f, 0.5f, size, size, C2D_Color32f(1.0f, 1.0f, 1.0f, 0.900f));
+	C2D_DrawText(&g_staticText[1], C2D_WithColor | C2D_AlignJustified, 10.0f, 60.0f, 0.5f, size, size, C2D_Color32f(0.0f, 0.0f, 1.0f, 0.625f));
+	C2D_DrawText(&g_staticText[2], C2D_WithColor | C2D_AlignJustified, 10.0f, 90.0f, 0.5f, size, size, C2D_Color32f(0.0f, 0.0f, 1.0f, 0.625f));
+	C2D_DrawText(&g_staticText[3], C2D_WithColor | C2D_AlignJustified, 10.0f, 120.0f, 0.5f, size, size, C2D_Color32f(0.0f, 0.0f, 1.0f, 0.625f));
+	C2D_DrawText(&g_staticText[4], C2D_WithColor | C2D_AlignJustified, 10.0f, 150.0f, 0.5f, size, size, C2D_Color32f(0.0f, 0.0f, 1.0f, 0.625f));
+	C2D_DrawText(&g_staticText[5], C2D_WithColor | C2D_AlignRight, 300.0f, 100.0f, 0.5f, size, size, C2D_Color32f(1.0f, 0.0f, 1.0f, 0.625f));
 
 	// Generate and draw dynamic text
-	char buf[160];
-
-	// C2D_Text dynText;
-	// snprintf(buf, sizeof(buf), "Current text size: %f (Use  to change)", size);
-	// C2D_TextParse(&dynText, g_dynamicBuf, buf);
-	// C2D_TextOptimize(&dynText);
-	// C2D_DrawText(&dynText, C2D_AlignCenter, 200.0f, 145.0f, 0.5f, 0.5f, 0.5f);
+	char buf[161];
 
 	C2D_Text Sprites;
 	snprintf(buf, sizeof(buf), "Sprites:     %zu/%u", numSprites, MAX_SPRITES);
@@ -93,6 +90,12 @@ static void sceneRender(float size)
 	// C2D_TextParse(&Cmd, g_dynamicBuf, buf);
 	// C2D_TextOptimize(&Cmd);
 	// C2D_DrawText(&Cmd, C2D_AlignCenter, 200.0f, 225.0f, 0.5f, 0.5f, 0.5f);
+
+	// C2D_Text dynText;
+	// snprintf(buf, sizeof(buf), "Current text size: %f (Use  to change)", size);
+	// C2D_TextParse(&dynText, g_dynamicBuf, buf);
+	// C2D_TextOptimize(&dynText);
+	// C2D_DrawText(&dynText, C2D_AlignCenter, 200.0f, 170.0f, 0.5f, 0.5f, 0.5f);
 }
 
 static void sceneExit(void)
