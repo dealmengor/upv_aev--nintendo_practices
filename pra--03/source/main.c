@@ -112,8 +112,7 @@ static void initSprites()
 		sprite->dy = rand() * 4.0f / RAND_MAX - 2.0f;
 		if (i == 2)
 		{
-			C2D_SpriteSetPos(&sprite->spr, 100, 100);
-			C2D_SpriteSetRotationDegrees(&sprite->spr, 180);
+			C2D_SpriteSetRotationDegrees(&sprite->spr, 0);
 		}
 	}
 }
