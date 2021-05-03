@@ -10,25 +10,27 @@
 #define BYTESPERSAMPLE 4
 
 //----------------------------------------------------------------------------
-void fill_buffer(void *audioBuffer,size_t offset, size_t size, int frequency ) {
-//----------------------------------------------------------------------------
+void fill_buffer(void *audioBuffer, size_t offset, size_t size, int frequency)
+{
+	//----------------------------------------------------------------------------
 
-	u32 *dest = (u32*)audioBuffer;
+	u32 *dest = (u32 *)audioBuffer;
 
-	for (int i=0; i<size; i++) {
+	for (int i = 0; i < size; i++)
+	{
 
-		s16 sample = INT16_MAX * sin(frequency*(2*M_PI)*(offset+i)/SAMPLERATE);
+		s16 sample = INT16_MAX * sin(frequency * (2 * M_PI) * (offset + i) / SAMPLERATE);
 
-		dest[i] = (sample<<16) | (sample & 0xffff);
+		dest[i] = (sample << 16) | (sample & 0xffff);
 	}
 
-	DSP_FlushDataCache(audioBuffer,size);
-
+	DSP_FlushDataCache(audioBuffer, size);
 }
 
 //----------------------------------------------------------------------------
-int main(int argc, char **argv) {
-//----------------------------------------------------------------------------
+int main(int argc, char **argv)
+{
+	//----------------------------------------------------------------------------
 
 	PrintConsole topScreen;
 	ndspWaveBuf waveBuf[2];
@@ -41,7 +43,7 @@ int main(int argc, char **argv) {
 
 	printf("libctru streaming audio\n");
 
-	u32 *audioBuffer = (u32*)linearAlloc(SAMPLESPERBUF*BYTESPERSAMPLE*2);
+	u32 *audioBuffer = (u32 *)linearAlloc(SAMPLESPERBUF * BYTESPERSAMPLE * 2);
 
 	bool fillBlock = false;
 
@@ -61,12 +63,11 @@ int main(int argc, char **argv) {
 
 	int notefreq[] = {
 		262, 294, 339, 349, 392, 440,
-		494, 440, 392, 349, 339, 294
-	};
+		494, 440, 392, 349, 339, 294};
 
 	int note = 4;
 
-	memset(waveBuf,0,sizeof(waveBuf));
+	memset(waveBuf, 0, sizeof(waveBuf));
 	waveBuf[0].data_vaddr = &audioBuffer[0];
 	waveBuf[0].nsamples = SAMPLESPERBUF;
 	waveBuf[1].data_vaddr = &audioBuffer[SAMPLESPERBUF];
@@ -74,7 +75,7 @@ int main(int argc, char **argv) {
 
 	size_t stream_offset = 0;
 
-	fill_buffer(audioBuffer,stream_offset, SAMPLESPERBUF * 2, notefreq[note]);
+	fill_buffer(audioBuffer, stream_offset, SAMPLESPERBUF * 2, notefreq[note]);
 
 	stream_offset += SAMPLESPERBUF;
 
@@ -83,7 +84,8 @@ int main(int argc, char **argv) {
 
 	printf("Press up/down to change tone\n");
 
-	while(aptMainLoop()) {
+	while (aptMainLoop())
+	{
 
 		gfxSwapBuffers();
 		gfxFlushBuffers();
@@ -95,21 +97,26 @@ int main(int argc, char **argv) {
 		if (kDown & KEY_START)
 			break; // break in order to return to hbmenu
 
-		if (kDown & KEY_DOWN) {
+		if (kDown & KEY_DOWN)
+		{
 			note -= 1;
 
-			if (note<0) note = sizeof(notefreq)/sizeof(notefreq[0])-1;
+			if (note < 0)
+				note = sizeof(notefreq) / sizeof(notefreq[0]) - 1;
 		}
 
-		if (kDown & KEY_UP) {
+		if (kDown & KEY_UP)
+		{
 			note += 1;
 
-			if (note > (sizeof(notefreq)/sizeof(notefreq[0])-1)) note = 0;
+			if (note > (sizeof(notefreq) / sizeof(notefreq[0]) - 1))
+				note = 0;
 		}
 
-		if (waveBuf[fillBlock].status == NDSP_WBUF_DONE) {
+		if (waveBuf[fillBlock].status == NDSP_WBUF_DONE)
+		{
 
-			fill_buffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples,notefreq[note]);
+			fill_buffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples, notefreq[note]);
 
 			ndspChnWaveBufAdd(0, &waveBuf[fillBlock]);
 			stream_offset += waveBuf[fillBlock].nsamples;
