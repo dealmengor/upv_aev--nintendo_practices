@@ -2,6 +2,13 @@
 The idea is to reproduce large information little by little in the sound buffer
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+#include <3ds.h>
+
 #define SAMPLERATE 22050 // Nyquist Frequence (22050Hz Samplerates per second)
 #define SAMPLESPERBUF (SAMPLERATE / 30)
 #define BYTESPERSAMPLE 4
