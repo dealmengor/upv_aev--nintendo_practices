@@ -1,22 +1,19 @@
-/*
-The idea is to reproduce large information little by little in the sound buffer
-*/
+#include "main.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-
-#include <3ds.h>
-
-#define SAMPLERATE 22050 // Nyquist Frequence (22050Hz Samplerates per second)
-#define SAMPLESPERBUF (SAMPLERATE / 30)
+// Audio Settings
+#define SAMPLERATE 11025				// Samplerates per second Hz
+#define SAMPLESPERBUF (SAMPLERATE / 30) // Hz sampling rate
 #define BYTESPERSAMPLE 4
-#define START_NOTE_FREQUENCY 20	 // Hz
-#define MAX_NOTE_FREQUENCY 20000 // Hz
-#define STEP_FREQUENCY 100		 // Hz
+int sound_status_sentinel = STAND_BY_STATE;
+
+// Buffer Settings
+#define START_BUFFER_ELEMENT 0
+#define MAX_BUFFER_ELEMENT MOSTRES_MISTERIOSES_SIZE
+#define NEXT_STEP_FREQUENCY 1
+#define BUFFER_TO_STREAM mostresMisterioses
 
 //----------------------------------------------------------------------------
+
 void fill_buffer(void *audioBuffer, size_t offset, size_t size, int frequency)
 {
 	//----------------------------------------------------------------------------
@@ -26,12 +23,28 @@ void fill_buffer(void *audioBuffer, size_t offset, size_t size, int frequency)
 	for (int i = 0; i < size; i++)
 	{
 		// Sineidal Function
-		s16 sample = INT16_MAX * sin(frequency * (2 * M_PI) * (offset + i) / SAMPLERATE);
+		s8 sample = INT16_MAX * sin(frequency * (2 * M_PI) * (offset + i) / SAMPLERATE);
 
 		dest[i] = (sample << 16) | (sample & 0xffff);
 	}
 
 	DSP_FlushDataCache(audioBuffer, size);
+}
+
+void sound_status_controller(int sound_sentinel)
+{
+	switch (sound_sentinel)
+	{
+	case STAND_BY_STATE:
+		sound_status_sentinel = STAND_BY_STATE;
+		break;
+	case PLAY_STATE:
+		sound_status_sentinel = PLAY_STATE;
+		break;
+	case PAUSE_STATE:
+		sound_status_sentinel = PAUSE_STATE;
+		break;
+	}
 }
 
 //----------------------------------------------------------------------------
@@ -57,8 +70,8 @@ int main(int argc, char **argv)
 	// Initializes NDSP.
 	ndspInit();
 
-	// Output mode to set. Defaults to NDSP_OUTPUT_STEREO. (STEREO: two channels)
-	ndspSetOutputMode(NDSP_OUTPUT_STEREO);
+	// Output mode to set.
+	ndspSetOutputMode(NDSP_OUTPUT_MONO);
 
 	// Sets the interpolation type of a channel.
 	ndspChnSetInterp(0, NDSP_INTERP_LINEAR);
@@ -71,7 +84,7 @@ int main(int argc, char **argv)
 	PCM16. Pulse-code modulation(PCM), bit depth is the number of bits of information in each sample 
 	and it directly corresponds to the resolution of each sample. 16 bits per sample
 	*/
-	ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
+	ndspChnSetFormat(0, NDSP_FORMAT_PCM8);
 
 	/*
 	Sets the mix parameters (volumes) of a channel.
@@ -101,9 +114,7 @@ int main(int argc, char **argv)
 	size_t stream_offset = 0;
 
 	// Current Note frequency
-	size_t current_note_frequency = START_NOTE_FREQUENCY;
-
-	fill_buffer(audioBuffer, stream_offset, SAMPLESPERBUF * 2, current_note_frequency);
+	size_t current_note_frequency = START_BUFFER_ELEMENT;
 
 	stream_offset += SAMPLESPERBUF;
 
@@ -122,43 +133,54 @@ int main(int argc, char **argv)
 		hidScanInput();
 		u32 kDown = hidKeysDown();
 
+		// Console
 		consoleClear(); //Clear console
+		printf("\x1b[4;1HMostres Misterioses");
+		printf("\x1b[5;1HFor Play or Pause Press A ");
+		if (sound_status_sentinel == PLAY_STATE)
+			printf("\x1b[6;1HEstatus: Playing");
+		if (sound_status_sentinel == PAUSE_STATE)
+			printf("\x1b[6;1HEstatus: On Pause");
+		printf("\x1b[7;1HNote: %d of %d", current_note_frequency, MAX_BUFFER_ELEMENT);
 
+		// Program Input
 		if (kDown & KEY_START)
 			break; // break in order to return to hbmenu
 
-		if (kDown & KEY_DOWN)
+		if ((kDown & KEY_A))
 		{
-			current_note_frequency -= STEP_FREQUENCY;
-
-			if (current_note_frequency < START_NOTE_FREQUENCY)
+			if (sound_status_sentinel != PLAY_STATE)
 			{
-				current_note_frequency = START_NOTE_FREQUENCY;
+				sound_status_controller(PLAY_STATE);
+			}
+			else
+			{
+				sound_status_controller(PAUSE_STATE);
 			}
 		}
 
-		if (kDown & KEY_UP)
+		// Sound
+		if (sound_status_sentinel == PLAY_STATE)
 		{
-			current_note_frequency += STEP_FREQUENCY;
+			current_note_frequency += 1;
 
-			if (current_note_frequency > MAX_NOTE_FREQUENCY)
-				current_note_frequency = START_NOTE_FREQUENCY;
-		}
+			if (current_note_frequency > MAX_BUFFER_ELEMENT)
+			{
+				current_note_frequency = START_BUFFER_ELEMENT;
+				sound_status_sentinel = PAUSE_STATE;
+			}
 
-		printf("\x1b[4;1HTONE GENERATOR");
-		printf("\x1b[5;1HFor change the interval frequency in 100Hz steps");
-		printf("\x1b[6;1HPress Up or Down");
-		printf("\x1b[7;1HNote: %d Hz of %d Hz", current_note_frequency, MAX_NOTE_FREQUENCY);
+			// If the information provided has been reproduced, continue with the next
+			if (waveBuf[fillBlock].status == NDSP_WBUF_DONE)
+			{
 
-		// If the information provided has been reproduced, continue with the next
-		if (waveBuf[fillBlock].status == NDSP_WBUF_DONE)
-		{
-			fill_buffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples, current_note_frequency);
+				fill_buffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples, BUFFER_TO_STREAM[current_note_frequency]);
 
-			ndspChnWaveBufAdd(0, &waveBuf[fillBlock]);
-			stream_offset += waveBuf[fillBlock].nsamples;
+				ndspChnWaveBufAdd(0, &waveBuf[fillBlock]);
+				stream_offset += waveBuf[fillBlock].nsamples;
 
-			fillBlock = !fillBlock;
+				fillBlock = !fillBlock;
+			}
 		}
 	}
 
