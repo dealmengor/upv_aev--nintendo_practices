@@ -27,7 +27,6 @@ void fill_buffer(void *audioBuffer, size_t offset, size_t size, int frequency)
 	{
 		// Sineidal Function
 		s16 sample = INT16_MAX * sin(frequency * (2 * M_PI) * (offset + i) / SAMPLERATE);
-
 		dest[i] = (sample << 16) | (sample & 0xffff);
 	}
 

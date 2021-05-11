@@ -22,10 +22,11 @@ void fill_buffer(void *audioBuffer, size_t offset, size_t size, int frequency)
 
 	for (int i = 0; i < size; i++)
 	{
-		// Sineidal Function
-		s8 sample = INT16_MAX * sin(frequency * (2 * M_PI) * (offset + i) / SAMPLERATE);
+		// This is a simple sine wave, with a frequency of `frequency` Hz, and an amplitude 30% of maximum.
+		s8 sample = INT8_MAX * sin(frequency * (2 * M_PI) * (offset + i) / SAMPLERATE);
 
-		dest[i] = (sample << 16) | (sample & 0xffff);
+		// Stereo samples are interleaved: left and right channels.
+		dest[i] = (sample << 8) | (sample & 0xffff);
 	}
 
 	DSP_FlushDataCache(audioBuffer, size);
@@ -174,7 +175,7 @@ int main(int argc, char **argv)
 			if (waveBuf[fillBlock].status == NDSP_WBUF_DONE)
 			{
 
-				fill_buffer(waveBuf[fillBlock].data_pcm16, stream_offset, waveBuf[fillBlock].nsamples, BUFFER_TO_STREAM[current_note_frequency]);
+				fill_buffer(waveBuf[fillBlock].data_pcm8, stream_offset, waveBuf[fillBlock].nsamples, BUFFER_TO_STREAM[current_note_frequency]);
 
 				ndspChnWaveBufAdd(0, &waveBuf[fillBlock]);
 				stream_offset += waveBuf[fillBlock].nsamples;
