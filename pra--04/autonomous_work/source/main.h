@@ -9,9 +9,6 @@ The idea is to reproduce large information little by little in the sound buffer
 
 #include <3ds.h>
 
-// Macros
-#define MOSTRES_MISTERIOSES_SIZE (sizeof(mostresMisterioses) / sizeof(mostresMisterioses[0]) - 1)
-
 // Sound Controller Status
 typedef enum
 {
